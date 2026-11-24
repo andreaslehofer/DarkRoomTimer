@@ -1,0 +1,100 @@
+/* Dunkelkammer-Theme: ausschließlich tiefes Rot auf Schwarz,
+   damit Fotopapier nicht belichtet wird und die Augen dunkeladaptiert bleiben. */
+:root {
+  --bg: #000;
+  --fg: #b00000;
+  --fg-dim: #4a0000;
+  --fg-active: #ff1a1a;
+  --radius: 12px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+}
+
+.app__header h1 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+}
+
+.step {
+  padding: 12px 8px;
+  border: 1px solid var(--fg-dim);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  text-align: center;
+}
+.step small { display: block; color: var(--fg-dim); font-variant-numeric: tabular-nums; }
+.step[aria-current="step"] { border-color: var(--fg); background: #1a0000; }
+.step[aria-current="step"] small { color: var(--fg); }
+
+.timer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.timer__label { font-size: 1.25rem; }
+.timer__display {
+  font-size: clamp(4rem, 24vw, 8rem);
+  font-weight: 200;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.timer--done .timer__display { color: var(--fg-active); animation: blink 1s steps(2) infinite; }
+
+@keyframes blink { 50% { opacity: 0.2; } }
+
+.controls {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 8px;
+}
+
+.btn {
+  min-height: 64px;
+  border: 1px solid var(--fg-dim);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-size: 1.1rem;
+}
+.btn--primary { border-color: var(--fg); }
+.btn:active, .step:active { background: #260000; }
+
+@media (prefers-reduced-motion: reduce) {
+  .timer--done .timer__display { animation: none; }
+}
