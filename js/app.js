@@ -1,6 +1,6 @@
 import { Timer, formatTime } from './timer.js';
 import { DEFAULT_STEPS } from './steps.js';
-import { unlockAudio, beep, vibrate, keepAwake } from './alerts.js';
+import { unlockAudio, beep, vibrate, initWakeLock } from './alerts.js';
 
 const steps = DEFAULT_STEPS;
 let current = 0;
@@ -13,6 +13,7 @@ const el = {
   start: document.getElementById('btn-start'),
   reset: document.getElementById('btn-reset'),
   next: document.getElementById('btn-next'),
+  wake: document.getElementById('wake-indicator'),
 };
 
 const timer = new Timer();
@@ -47,13 +48,12 @@ function updateControls() {
 timer.addEventListener('tick', (e) => {
   el.display.textContent = formatTime(e.detail.remaining);
 });
-timer.addEventListener('start', () => { keepAwake(true); updateControls(); });
-timer.addEventListener('pause', () => { keepAwake(false); updateControls(); });
+timer.addEventListener('start', updateControls);
+timer.addEventListener('pause', updateControls);
 timer.addEventListener('done', () => {
   el.timer.classList.add('timer--done');
   beep();
   vibrate();
-  keepAwake(false);
   updateControls();
 });
 
@@ -64,9 +64,8 @@ el.start.addEventListener('click', () => {
 el.reset.addEventListener('click', () => selectStep(current));
 el.next.addEventListener('click', () => selectStep((current + 1) % steps.length));
 
-// Wake Lock wird beim Verlassen des Tabs automatisch freigegeben – beim Zurückkehren neu anfordern.
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && timer.running) keepAwake(true);
+initWakeLock((active) => {
+  el.wake.hidden = !active;
 });
 
 selectStep(0);
