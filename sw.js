@@ -1,7 +1,7 @@
 // Service Worker: Cache-first für App-Shell und Profile, damit alles offline läuft.
 // CACHE_VERSION wird von `npm run build` aus dem Inhalt aller Dateien berechnet –
 // nicht von Hand ändern.
-const CACHE_VERSION = '9fe54e2bd8';
+const CACHE_VERSION = '001f5573ec';
 const CACHE_NAME = `darkroomtimer-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -20,12 +20,16 @@ const APP_SHELL = [
   './profiles/index.json',
 ];
 
+// cache: 'reload' umgeht den HTTP-Cache des Browsers. Sonst landen beim Update
+// bis zu 10 min alte Dateien (GitHub Pages: max-age=600) im neuen Cache.
+const fresh = (url) => new Request(url, { cache: 'reload' });
+
 async function precache() {
   const cache = await caches.open(CACHE_NAME);
-  await cache.addAll(APP_SHELL);
+  await cache.addAll(APP_SHELL.map(fresh));
   // Profile dynamisch aus dem Index – neue Dateien brauchen keine Änderung hier.
   const index = await (await cache.match('./profiles/index.json')).json();
-  await cache.addAll(index.profiles.map((file) => `./profiles/${file}`));
+  await cache.addAll(index.profiles.map((file) => fresh(`./profiles/${file}`)));
 }
 
 self.addEventListener('install', (event) => {

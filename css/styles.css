@@ -98,6 +98,8 @@ h2 { margin: 0; font-size: 1.6rem; font-weight: 500; }
 .tile--error { border-color: var(--alert-fg); border-style: dashed; cursor: default; }
 .tile--error .tile__meta { color: var(--alert-fg); overflow-wrap: anywhere; }
 
+.version { margin-top: auto; padding-top: 24px; font-size: 0.75rem; text-align: center; }
+
 /* --- Vorbereitung --- */
 .back {
   align-self: flex-start;

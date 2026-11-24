@@ -58,6 +58,8 @@ function usageTag(seg, extraClass = '') {
 
 const views = { list: $('view-list'), prep: $('view-prep'), steps: $('view-steps'), run: $('view-run') };
 function show(name) {
+  // Wartendes App-Update erst auf der Übersicht anwenden – nie mitten in Vorbereitung oder Lauf.
+  if (name === 'list' && updatePending) return location.reload();
   for (const [key, el] of Object.entries(views)) el.hidden = key !== name;
   window.scrollTo(0, 0);
 }
@@ -395,11 +397,37 @@ loadProfiles()
         h('span', { class: 'tile__meta' }, err.message)));
   });
 
+// ---------------------------------------------------------------- Updates
+// iOS startet eine Homescreen-App beim Zurückwechseln meist nicht neu, sondern weckt sie nur auf –
+// dabei sucht der Browser nicht selbst nach Updates. Deshalb bei jeder Rückkehr aktiv nachfragen.
+// Übernimmt ein neuer Service Worker, wird die Seite neu geladen, sobald die Übersicht sichtbar ist.
+
+let updatePending = false; // show() wird erst nach dem Laden des Moduls aufgerufen
+
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((err) => {
+  const hadController = !!navigator.serviceWorker.controller; // erste Installation ≠ Update
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || updatePending) return;
+    updatePending = true;
+    if (!views.list.hidden) location.reload();
+  });
+
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js');
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      });
+    } catch (err) {
       console.error('Service Worker Registrierung fehlgeschlagen:', err);
-    });
+    }
   });
 }
+
+// Version unten auf der Übersicht – zum Prüfen, ob das Update angekommen ist.
+navigator.serviceWorker?.ready.then(() => caches.keys()).then((keys) => {
+  const key = keys.find((k) => k.startsWith('darkroomtimer-'));
+  if (key) $('app-version').textContent = `Version ${key.slice('darkroomtimer-'.length)}`;
+}).catch(() => {});
 
