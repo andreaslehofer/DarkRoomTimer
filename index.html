@@ -26,15 +26,27 @@
       <div id="profile-list" class="tiles" aria-label="Prozesse"></div>
     </section>
 
-    <!-- Vorbereitung: Variante/Tank wählen, Schritte und Ansatz prüfen -->
-    <section id="view-setup" class="view" hidden>
+    <!-- Schritt 1: Variante/Tank wählen, Ansatz vorbereiten -->
+    <section id="view-prep" class="view" hidden>
       <button type="button" class="back" data-action="back">‹ Prozesse</button>
-      <h2 id="setup-name"></h2>
-      <p id="setup-temp" class="meta"></p>
-      <div id="setup-selects" class="selects"></div>
-      <table class="steps-table" id="setup-steps"></table>
-      <div id="setup-mixing"></div>
-      <button type="button" id="btn-run" class="btn btn--primary btn--wide">Start</button>
+      <h2 id="prep-name"></h2>
+      <p id="prep-temp" class="meta"></p>
+      <div id="prep-selects" class="selects"></div>
+      <div id="prep-mixing"></div>
+      <div class="actions">
+        <button type="button" id="btn-prep-ok" class="btn btn--primary btn--wide">Ansatz bereit – weiter</button>
+      </div>
+    </section>
+
+    <!-- Schritt 2: Ablauf prüfen, Zeiten anpassen, starten -->
+    <section id="view-steps" class="view" hidden>
+      <button type="button" class="back" id="steps-back">‹ Ansatz</button>
+      <h2 id="steps-name"></h2>
+      <p id="steps-summary" class="meta"></p>
+      <table class="steps-table" id="steps-table"></table>
+      <div class="actions">
+        <button type="button" id="btn-run" class="btn btn--primary btn--wide">Start</button>
+      </div>
     </section>
 
     <!-- Lauf: läuft ohne Handbedienung von Schritt zu Schritt -->

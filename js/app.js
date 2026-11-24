@@ -46,13 +46,14 @@ function badge(canister, extraClass = '') {
 /** Re-use / One-shot – nur für Chemie, nicht für Wasser. */
 function usageTag(seg, extraClass = '') {
   if (!seg || seg.kind !== 'step' || seg.canister === 0) return null;
-  return h('span', { class: `usage ${seg.one_shot ? 'usage--oneshot' : ''} ${extraClass}`.trim() },
+  // Re-use hervorheben: dafür muss rechtzeitig die richtige Flasche bereitstehen; Wegschütten ist Routine.
+  return h('span', { class: `usage ${seg.one_shot ? '' : 'usage--reuse'} ${extraClass}`.trim() },
     seg.one_shot ? 'One-shot' : 'Re-use');
 }
 
 // ---------------------------------------------------------------- Ansichten
 
-const views = { list: $('view-list'), setup: $('view-setup'), run: $('view-run') };
+const views = { list: $('view-list'), prep: $('view-prep'), steps: $('view-steps'), run: $('view-run') };
 function show(name) {
   for (const [key, el] of Object.entries(views)) el.hidden = key !== name;
   window.scrollTo(0, 0);
@@ -105,6 +106,10 @@ function renderList(entries) {
 }
 
 // ---------------------------------------------------------------- Vorbereitung
+// Zwei Schritte, wie in der Praxis:
+//   1. "prep":  Film/Variante + Tank wählen, Ansatz anzeigen → Chemie ansetzen
+//   2. "steps": Ablauf prüfen, Zeiten anpassen (Push/Pull) → Start
+// Profile ohne Auswahl und ohne Ansatz springen direkt zu 2.
 
 let selected = null; // { file, profile, option, tank, overrides }
 
@@ -113,6 +118,10 @@ function currentSequence() {
   return buildSequence(selected.profile, selected.option).map((s, i) =>
     selected.overrides.has(i) ? { ...s, duration_s: selected.overrides.get(i), base_s: s.duration_s } : s);
 }
+
+/** Tankwahl ist in der App nur für den Ansatz relevant (Drehzahl betrifft nur die Maschine). */
+const hasMixing = (p) => p.tanks.some((t) => t.volume > 0) && p.steps.some((s) => s.stock_perc !== null);
+const hasPrep = (p) => p.option.length > 0 || hasMixing(p);
 
 function openSetup(entry) {
   const saved = prefs.get(entry.file);
@@ -123,10 +132,20 @@ function openSetup(entry) {
     tank: Math.min(saved.tank ?? 0, Math.max(0, p.tanks.length - 1)),
     overrides: new Map(), // Segment-Index → Sekunden
   };
-  $('setup-name').textContent = p.name;
-  $('setup-temp').textContent = formatTemp(p.temp_c, p.temp_tolerance_c);
-  renderSetup();
-  show('setup');
+  for (const id of ['prep-name', 'steps-name']) $(id).textContent = p.name;
+  $('prep-temp').textContent = formatTemp(p.temp_c, p.temp_tolerance_c);
+
+  if (hasPrep(p)) {
+    renderPrep();
+    show('prep');
+  } else {
+    openSteps();
+  }
+}
+
+function openSteps() {
+  renderSteps();
+  show('steps');
 }
 
 function selectField(label, items, value, onchange) {
@@ -135,7 +154,7 @@ function selectField(label, items, value, onchange) {
       items.map((item, i) => h('option', { value: i, selected: i === value }, item))));
 }
 
-function renderSetup() {
+function renderPrep() {
   const { profile: p } = selected;
   const update = (key) => (value) => {
     if (key === 'option') {
@@ -146,32 +165,16 @@ function renderSetup() {
     }
     selected[key] = value;
     prefs.set(selected.file, { option: selected.option, tank: selected.tank });
-    renderSetup();
+    renderPrep();
   };
 
-  fill($('setup-selects'),
+  fill($('prep-selects'),
     p.option.length > 0 && selectField(p.option_label, p.option.map((o) => `${o.name} – ${formatDuration(o.duration_s)}`), selected.option, update('option')),
-    p.tanks.length > 0 && selectField('Tank', p.tanks.map((t) => t.name), selected.tank, update('tank')),
-  );
-
-  const segments = currentSequence();
-  const edited = selected.overrides.size > 0;
-  fill($('setup-steps'),
-    h('thead', {}, h('tr', {}, h('th', {}, 'Schritt'), h('th', {}, 'Beh.'), h('th', { class: 'num' }, 'Zeit'))),
-    h('tbody', {}, segments.map((s, i) =>
-      h('tr', { class: s.kind === 'purge' ? 'purge' : '' },
-        h('td', {}, s.kind === 'purge' ? `↳ Spülen` : s.name, ' ', usageTag(s)),
-        h('td', {}, badge(s.canister)),
-        h('td', { class: 'num' }, timeInput(s, i))))),
-    h('tfoot', {},
-      h('tr', {}, h('td', { colspan: 2 }, 'Gesamt'), h('td', { class: 'num' }, formatDuration(totalDuration(segments)))),
-      edited && h('tr', {}, h('td', { colspan: 3, class: 'note' },
-        'Geänderte Zeiten gelten nur für diesen Lauf. ',
-        h('button', { type: 'button', class: 'link', onclick: () => { selected.overrides.clear(); renderSetup(); } }, 'Alle zurücksetzen')))),
+    hasMixing(p) && selectField('Tank', p.tanks.map((t) => `${t.name}${t.volume ? ` – ${t.volume} ml` : ''}`), selected.tank, update('tank')),
   );
 
   const rows = mixingTable(p, selected.tank);
-  fill($('setup-mixing'),
+  fill($('prep-mixing'),
     rows.length > 0 && h('div', { class: 'mixing' },
       h('h3', {}, 'Ansatz'),
       h('table', {},
@@ -185,9 +188,38 @@ function renderSetup() {
   );
 }
 
+function renderSteps() {
+  const { profile: p } = selected;
+
+  // Zusammenfassung der Auswahl aus Schritt 1
+  const summary = [
+    formatTemp(p.temp_c, p.temp_tolerance_c),
+    p.option.length > 0 && p.option[selected.option].name,
+    hasMixing(p) && p.tanks[selected.tank].name,
+  ].filter(Boolean).join(' · ');
+  $('steps-summary').textContent = summary;
+  $('steps-back').textContent = hasPrep(p) ? '‹ Ansatz' : '‹ Prozesse';
+
+  const segments = currentSequence();
+  const edited = selected.overrides.size > 0;
+  fill($('steps-table'),
+    h('thead', {}, h('tr', {}, h('th', {}, 'Schritt'), h('th', {}, 'Beh.'), h('th', { class: 'num' }, 'Zeit'))),
+    h('tbody', {}, segments.map((s, i) =>
+      h('tr', { class: s.kind === 'purge' ? 'purge' : '' },
+        h('td', {}, s.kind === 'purge' ? `↳ Spülen` : s.name, ' ', usageTag(s)),
+        h('td', {}, badge(s.canister)),
+        h('td', { class: 'num' }, timeInput(s, i))))),
+    h('tfoot', {},
+      h('tr', {}, h('td', { colspan: 2 }, 'Gesamt'), h('td', { class: 'num' }, formatDuration(totalDuration(segments)))),
+      edited && h('tr', {}, h('td', { colspan: 3, class: 'note' },
+        'Geänderte Zeiten gelten nur für diesen Lauf. ',
+        h('button', { type: 'button', class: 'link', onclick: () => { selected.overrides.clear(); renderSteps(); } }, 'Alle zurücksetzen')))),
+  );
+}
+
 /** Zeit-Feld in der Schrittliste: Ziffern-Tastatur, "830" = 8:30. */
 function timeInput(seg, index) {
-  const input = h('input', {
+  return h('input', {
     type: 'text',
     inputmode: 'numeric',
     class: `time-input ${seg.base_s !== undefined ? 'time-input--edited' : ''}`.trim(),
@@ -202,11 +234,15 @@ function timeInput(seg, index) {
       if (value === null) { /* ungültig → alten Wert wieder anzeigen */ }
       else if (value === base) selected.overrides.delete(index);
       else selected.overrides.set(index, value);
-      renderSetup();
+      renderSteps();
     },
   });
-  return input;
 }
+
+$('btn-prep-ok').addEventListener('click', openSteps);
+$('steps-back').addEventListener('click', () => {
+  if (hasPrep(selected.profile)) { renderPrep(); show('prep'); } else show('list');
+});
 
 $('btn-run').addEventListener('click', () => {
   unlockAudio(); // muss in der Nutzergeste passieren (iOS)
@@ -323,7 +359,7 @@ function endRun() {
   runner?.stop();
   runner = null;
   views.run.classList.remove('run--draining', 'run--paused', 'run--done');
-  show('setup');
+  openSteps();
 }
 
 // Nach Rückkehr aus dem Hintergrund sofort nachrechnen statt auf den nächsten Tick zu warten.

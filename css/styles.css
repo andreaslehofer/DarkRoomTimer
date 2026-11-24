@@ -169,7 +169,7 @@ tfoot td { border-bottom: 0; font-weight: 600; }
   vertical-align: middle;
   white-space: nowrap;
 }
-.usage--oneshot { border-color: var(--alert-fg); color: var(--alert-fg); }
+.usage--reuse { border-color: var(--alert-fg); color: var(--alert-fg); }
 .usage--lg { font-size: 0.95rem; padding: 3px 12px; }
 .run__usage { min-height: 1.8em; }
 
@@ -236,7 +236,16 @@ td.note { font-size: 0.8rem; font-weight: 400; color: var(--fg-dim); }
 }
 .btn--primary { background: var(--fg); border-color: var(--fg); color: var(--bg); }
 .btn--primary:active { opacity: 0.8; }
-.btn--wide { width: 100%; margin-top: auto; }
+.btn--wide { width: 100%; }
+
+/* Hauptaktion unten fixiert – erreichbar ohne zu scrollen */
+.actions {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  padding: 16px 0 max(4px, env(safe-area-inset-bottom));
+  background: linear-gradient(to bottom, transparent, var(--bg) 16px);
+}
 .btn--confirm { border-color: var(--alert-fg); color: var(--alert-fg); }
 .btn:active, .tile:active, .back:active { background: var(--bg-press); }
 
