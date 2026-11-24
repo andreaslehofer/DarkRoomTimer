@@ -1,14 +1,18 @@
 {
-  "name": "Film E-6 (check !!)",
+  "name": "Jobo E-6",
   "process_type": "film-rotation",
   "temp_c": 38.0,
   "temp_tolerance_c": 0.3,
   "steps": [
-    { "name": "Vorwässern",       "canister": 0, "duration_s": 60,  "purge_s": 0 },
-    { "name": "Erstentwickler",   "canister": 1, "duration_s": 360, "purge_s": 45 },
-    { "name": "Farbentwickler",   "canister": 5, "duration_s": 360, "purge_s": 45 },
-    { "name": "Bleichfix",        "canister": 2, "duration_s": 360, "purge_s": 45 },
-    { "name": "Schlusswässerung", "canister": 0, "duration_s": 240, "purge_s": 0 }
+    { "name": "Vorwässern",       "canister": 0, "duration_s": 180,  "purge_s": 0 },
+    { "name": "Erstentwickler",   "canister": 1, "duration_s": 375, "purge_s": 150 },
+    { "name": "Umkehrbad",        "canister": 2, "duration_s": 120, "purge_s": 0 },
+    { "name": "Farbentwickler",   "canister": 3, "duration_s": 360, "purge_s": 0 },
+    { "name": "Conditioner",      "canister": 4, "duration_s": 120, "purge_s": 0 },
+    { "name": "Bleichbad",        "canister": 5, "duration_s": 360, "purge_s": 0 },
+    { "name": "Fixierer",         "canister": 6, "duration_s": 240, "purge_s": 30 },
+    { "name": "2x Wässern",       "canister": 0, "duration_s": 60, "purge_s": 120 },
+    { "name": "Netzmittel",       "canister": 999, "duration_s": 180, "purge_s": 0, "stock_perc": 0.5 }
   ],
   "tanks": [
     { "name": "2523 – 2 Rollen", "rpm": 75, "volume": 0 },
@@ -16,3 +20,5 @@
     { "name": "3006 – 6 Blatt",  "rpm": 50, "volume": 0 }
   ]
 }
+
+

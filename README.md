@@ -22,6 +22,7 @@ Zusätzliche, nur von der App genutzte Felder (vom Gerät ignoriert):
 | Feld | Bedeutung |
 |---|---|
 | `process_type` | Gruppe auf der Startseite: `film-rotation`, `paper-rotation`, `paper-tray`. Fehlt es, landet das Profil unter „Sonstige“ |
+| `steps[].canister: 999` | Reserviert für **Netzmittel** (immer am Ende, außerhalb der Maschine): Anzeige „N“, im Ansatz Gesamtmenge fest 1500 ml statt Tankvolumen. ⚠ Die CPPTouch-Firmware akzeptiert bisher nur 0..7 und verwirft solche Dateien, bis 999 dort ergänzt ist |
 | `option_label` | Beschriftung der Auswahl für `option[]`, z. B. „Film“ oder „Durchsatz“ (Default „Variante“) |
 | `steps[].one_shot` | `true` = Chemie wird nach Gebrauch verworfen (One-shot), fehlt/`false` = Re-use. Wird in Vorbereitung und Lauf angezeigt |
 
@@ -40,12 +41,13 @@ Fehlerhafte Profile erscheinen in der App als rot gestrichelte Kachel mit Fehler
 ## Starten
 
 ```sh
-npm start          # http://localhost:8080
-# oder
-python3 -m http.server 8080
+npm run dev        # Server auf http://localhost:8080 + automatischer Build bei jeder Änderung
+npm run watch      # nur automatischer Build (Server läuft woanders)
+npm run build      # einmalig bauen, z. B. vor dem Commit
 ```
 
-Service Worker brauchen `localhost` oder HTTPS.
+Nach einer Änderung im Browser **zweimal** neu laden: Beim ersten Mal holt der Service Worker die
+neue Version, ab dem zweiten Mal wird sie angezeigt. Service Worker brauchen `localhost` oder HTTPS.
 
 ## Struktur
 
@@ -61,4 +63,5 @@ js/alerts.js           Signaltöne, Vibration, Screen Wake Lock
 js/format.js           Zeit-/Temperaturformatierung
 profiles/              Prozessprofile + generierter index.json
 scripts/build.mjs      Build: Profile prüfen, Index + Cache-Version schreiben
+scripts/dev.mjs        Watch-Modus + lokaler Server
 ```

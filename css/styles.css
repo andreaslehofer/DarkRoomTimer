@@ -65,7 +65,6 @@ html, body {
   text-transform: uppercase;
   color: var(--fg-dim);
 }
-.wake { font-size: 0.75rem; color: var(--fg-dim); }
 
 .view { display: flex; flex-direction: column; gap: 16px; flex: 1; }
 h2 { margin: 0; font-size: 1.6rem; font-weight: 500; }
@@ -163,6 +162,7 @@ tfoot td { border-bottom: 0; font-weight: 600; }
   font-variant-numeric: tabular-nums;
 }
 .badge--water { color: var(--water); }
+.badge--wetting { border-style: dashed; } /* außerhalb der Maschine */
 .badge--lg { font-size: 1.7rem; }
 /* Re-use / One-shot */
 .usage {

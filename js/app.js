@@ -1,4 +1,4 @@
-import { parseProfile, buildSequence, totalDuration, mixingTable, PROCESS_TYPES } from './profile.js';
+import { parseProfile, buildSequence, totalDuration, mixingTable, PROCESS_TYPES, CANISTER_WETTING } from './profile.js';
 import { ProcessRunner } from './runner.js';
 import { formatTime, formatDuration, formatTemp, parseDuration } from './format.js';
 import { unlockAudio, signal, initWakeLock } from './alerts.js';
@@ -33,14 +33,17 @@ const prefs = {
   },
 };
 
-/** Behälter-Symbol: Kreis mit Nummer, "W" für Wasser (Kanister 0 = Spülen/Vorwässern). */
+/** Behälter-Symbol: Kreis mit Nummer, "W" für Wasser (0), "N" für Netzmittel (999). */
 function badge(canister, extraClass = '') {
-  const water = canister === 0;
+  const [text, label, kind] =
+    canister === 0 ? ['W', 'Wasser', 'water']
+    : canister === CANISTER_WETTING ? ['N', 'Netzmittel', 'wetting']
+    : [String(canister), `Behälter ${canister}`, ''];
   return h('span', {
-    class: `badge ${water ? 'badge--water' : ''} ${extraClass}`.trim(),
-    title: water ? 'Wasser' : `Behälter ${canister}`,
-    'aria-label': water ? 'Wasser' : `Behälter ${canister}`,
-  }, water ? 'W' : String(canister));
+    class: `badge ${kind ? `badge--${kind}` : ''} ${extraClass}`.trim(),
+    title: label,
+    'aria-label': label,
+  }, text);
 }
 
 /** Re-use / One-shot – nur für Chemie, nicht für Wasser. */
@@ -381,9 +384,7 @@ document.addEventListener('visibilitychange', () => {
 
 // ---------------------------------------------------------------- Start
 
-initWakeLock((active) => {
-  $('wake-indicator').hidden = !active;
-});
+initWakeLock();
 
 loadProfiles()
   .then(renderList)

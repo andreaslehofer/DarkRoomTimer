@@ -1,5 +1,5 @@
 {
-  "name": "Bellini C-41 (check !!)",
+  "name": "Bellini C-41",
   "process_type": "film-rotation",
   "temp_c": 38.0,
   "temp_tolerance_c": 0.3,
@@ -9,7 +9,7 @@
     { "name": "Bleiche",     "canister": 2, "duration_s": 45,  "purge_s": 0,  "stock_perc": 100.0 },
     { "name": "Fixierer",    "canister": 3, "duration_s": 90,  "purge_s": 30, "stock_perc": 100.0 },
     { "name": "2x Wässern 1",   "canister": 0, "duration_s": 60,  "purge_s": 120 },
-    { "name": "Stabilisator","canister": 4, "duration_s": 180, "purge_s": 0,  "stock_perc": 100.0 }
+    { "name": "Netzmittel","canister": 999, "duration_s": 180, "purge_s": 0, "stock_perc": 0.5 }
   ],
   "tanks": [
     { "name": "2523 – 2 Rollen", "rpm": 75, "volume": 400 },

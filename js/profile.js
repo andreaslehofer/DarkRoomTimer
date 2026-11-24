@@ -4,6 +4,14 @@
 // ("process_type", "option_label", "one_shot") ignoriert das Gerät.
 // Läuft im Browser und in Node (scripts/build.mjs).
 
+/**
+ * Reservierte Behälternummer für Netzmittel: immer am Ende, außerhalb der Maschine.
+ * Hinweis: Die CPPTouch-Firmware akzeptiert bisher nur 0..7 – dort muss 999 ergänzt werden.
+ */
+export const CANISTER_WETTING = 999;
+/** Netzmittel wird unabhängig vom Tank immer in dieser Menge angesetzt. */
+export const WETTING_VOLUME_ML = 1500;
+
 /** Prozesstypen in Anzeige-Reihenfolge (App-Feld "process_type"). */
 export const PROCESS_TYPES = {
   'film-rotation': 'Film · Rotation',
@@ -61,8 +69,8 @@ export function parseProfile(raw) {
     if (!s || typeof s !== 'object') fail(`Schritt ${n}: kein Objekt`);
     if (!isNum(s.canister)) fail(`Schritt ${n}: 'canister' fehlt`);
     const canister = Math.trunc(s.canister);
-    if (canister < 0 || canister > LIMITS.canisterMax) {
-      fail(`Schritt ${n}: canister=${canister} außerhalb 0..${LIMITS.canisterMax}`);
+    if ((canister < 0 || canister > LIMITS.canisterMax) && canister !== CANISTER_WETTING) {
+      fail(`Schritt ${n}: canister=${canister} außerhalb 0..${LIMITS.canisterMax} (bzw. ${CANISTER_WETTING} = Netzmittel)`);
     }
     const duration_s = isNum(s.duration_s) ? Math.trunc(s.duration_s) : 0;
     if (duration_s < 0) fail(`Schritt ${n}: duration_s darf nicht negativ sein`);
@@ -180,7 +188,9 @@ export function mixingTable(profile, tankIndex = 0) {
       name: s.name,
       canister: s.canister,
       one_shot: s.one_shot,
-      stock_ml: Math.round((tank.volume * s.stock_perc) / 100),
-      total_ml: tank.volume,
+      ...(() => {
+        const total = s.canister === CANISTER_WETTING ? WETTING_VOLUME_ML : tank.volume;
+        return { stock_ml: Math.round((total * s.stock_perc) / 100), total_ml: total };
+      })(),
     }));
 }

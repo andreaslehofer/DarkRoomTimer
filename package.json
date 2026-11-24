@@ -4,7 +4,9 @@
   "private": true,
   "description": "PWA-Timer für die analoge Dunkelkammer",
   "scripts": {
-    "start": "npx --yes http-server -c-1 -p 8080 .",
+    "start": "node scripts/dev.mjs",
+    "dev": "node scripts/dev.mjs",
+    "watch": "node scripts/dev.mjs --no-serve",
     "build": "node scripts/build.mjs"
   },
   "type": "module"

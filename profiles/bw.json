@@ -10,7 +10,7 @@
     { "name": "Fixierer",    "canister": 3, "duration_s": 300, "purge_s": 30, "stock_perc": 100.0 },
     { "name": "Washaid",     "canister": 4, "duration_s": 120, "purge_s": 30, "stock_perc": 20.0, "one_shot": true },
     { "name": "2x Wässern",   "canister": 0, "duration_s": 60,  "purge_s": 120 },
-    { "name": "Netzmittel",  "canister": 0, "duration_s": 180, "purge_s": 0 }
+    { "name": "Netzmittel",  "canister": 999, "duration_s": 180, "purge_s": 0, "stock_perc": 0.5}
   ],
   "tanks": [
     { "name": "2523 – 1 Rolle",  "rpm": 75, "volume": 300 },
