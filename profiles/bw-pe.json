@@ -1,0 +1,13 @@
+{
+  "name": "SW-Papier PE",
+  "temp_c": 20.0,
+  "temp_tolerance_c": 0.5,
+  "steps": [
+    { "name": "Entwickler", "canister": 1, "duration_s": 60 },
+    { "name": "Stoppbad",   "canister": 2, "duration_s": 30 },
+    { "name": "Fixierer",   "canister": 3, "duration_s": 60 },
+    { "name": "Wässern 1",  "canister": 0, "duration_s": 60 },
+    { "name": "Wässern 2",  "canister": 0, "duration_s": 60 },
+    { "name": "Wässern 3",  "canister": 0, "duration_s": 60 }
+  ]
+}

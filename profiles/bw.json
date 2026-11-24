@@ -1,0 +1,29 @@
+{
+  "name": "Adox XT-3",
+  "temp_c": 20.0,
+  "temp_tolerance_c": 0.5,
+  "steps": [
+    { "name": "Vorspülen",   "canister": 0, "duration_s": 120, "purge_s": 0 },
+    { "name": "Entwickler",  "canister": 1, "duration_s": 0,   "purge_s": 0,  "stock_perc": 50.0 },
+    { "name": "Stoppbad",    "canister": 2, "duration_s": 30,  "purge_s": 30, "stock_perc": 5.0 },
+    { "name": "Fixierer",    "canister": 3, "duration_s": 300, "purge_s": 30, "stock_perc": 100.0 },
+    { "name": "Washaid",     "canister": 4, "duration_s": 120, "purge_s": 30, "stock_perc": 20.0 },
+    { "name": "Wässern 1",   "canister": 0, "duration_s": 60,  "purge_s": 0 },
+    { "name": "Wässern 2",   "canister": 0, "duration_s": 120, "purge_s": 0 },
+    { "name": "Netzmittel",  "canister": 0, "duration_s": 180, "purge_s": 0 }
+  ],
+  "tanks": [
+    { "name": "2523 – 1 Rolle",  "rpm": 75, "volume": 300 },
+    { "name": "2523 – 2 Rollen", "rpm": 75, "volume": 400 },
+    { "name": "2553 – 4 Rollen", "rpm": 75, "volume": 800 },
+    { "name": "2553 – 6 Rollen", "rpm": 75, "volume": 1000 },
+    { "name": "3006 – 6 Blatt",  "rpm": 50, "volume": 300 }
+  ],
+  "option_label": "Film",
+  "option_canister": 1,
+  "option": [
+    { "name": "Across 100",      "duration_s": 480 },
+    { "name": "T-Max 400 120er", "duration_s": 420 },
+    { "name": "T-Max 400 4x5",   "duration_s": 495 }
+  ]
+}

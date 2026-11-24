@@ -1,0 +1,26 @@
+{
+  "name": "Bellini C-41",
+  "temp_c": 38.0,
+  "temp_tolerance_c": 0.3,
+  "steps": [
+    { "name": "Vorwässern",  "canister": 0, "duration_s": 180, "purge_s": 0 },
+    { "name": "Entwickler",  "canister": 1, "duration_s": 0,   "purge_s": 0,  "stock_perc": 100.0 },
+    { "name": "Bleiche",     "canister": 2, "duration_s": 45,  "purge_s": 0,  "stock_perc": 100.0 },
+    { "name": "Fixierer",    "canister": 3, "duration_s": 90,  "purge_s": 30, "stock_perc": 100.0 },
+    { "name": "Wässern 1",   "canister": 0, "duration_s": 60,  "purge_s": 0 },
+    { "name": "Wässern 2",   "canister": 0, "duration_s": 120, "purge_s": 0 },
+    { "name": "Stabilisator","canister": 4, "duration_s": 180, "purge_s": 0,  "stock_perc": 100.0 }
+  ],
+  "tanks": [
+    { "name": "2523 – 2 Rollen", "rpm": 75, "volume": 400 },
+    { "name": "2553 – 6 Rollen", "rpm": 75, "volume": 800 },
+    { "name": "3006 – 6 Blatt",  "rpm": 50, "volume": 400 }
+  ],
+  "option_label": "Durchsatz",
+  "option_canister": 1,
+  "option": [
+    { "name": "Filme 1–4",  "duration_s": 195 },
+    { "name": "Filme 5–8",  "duration_s": 210 },
+    { "name": "Filme 9–12", "duration_s": 240 }
+  ]
+}

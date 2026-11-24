@@ -1,7 +1,39 @@
 # DarkRoomTimer
 
-Progressive Web App als Timer für die analoge Dunkelkammer (Entwickler → Stoppbad → Fixierer → Wässern).
+Progressive Web App als Timer für die analoge Dunkelkammer – Film und Papier, Trommel/Tank.
 Rotlicht-taugliche Oberfläche, läuft offline und lässt sich auf dem Homescreen installieren.
+
+**Kernidee: freihändig.** Ein Prozess läuft nach dem Start ohne weitere Bedienung durch:
+
+| Zeitpunkt | Signal | Bedeutung |
+|---|---|---|
+| 10 s vor Schrittende | 3× kurz, hoch | Tank ausleeren |
+| 0:00 | 1× lang | nächster Schritt startet automatisch – einfüllen |
+| Prozessende | absteigende Tonfolge | fertig |
+
+Schritte, die höchstens 10 s dauern, bekommen kein eigenes Ausleer-Signal.
+
+## Prozessprofile
+
+Jede Datei `profiles/*.json` ist ein Prozess. Das Format ist **1:1 kompatibel mit CPPTouch**
+(`cpp2-ui/profiles/README.md`) – dieselben Dateien funktionieren in App und Gerät.
+Zusätzliche, nur von der App genutzte Felder (vom Gerät ignoriert):
+
+| Feld | Bedeutung |
+|---|---|
+| `option_label` | Beschriftung der Auswahl für `option[]`, z. B. „Film“ oder „Durchsatz“ (Default „Variante“) |
+
+`purge_s` wird in der App zu einem eigenen Segment „Spülen“ nach dem Schritt.
+
+**Nach jeder Änderung an Profilen oder App-Dateien:**
+
+```sh
+npm run build
+```
+
+Das prüft alle Profile, schreibt `profiles/index.json` (GitHub Pages kann keine Ordner auflisten)
+und setzt `CACHE_VERSION` in `sw.js`, damit installierte Apps das Update bekommen.
+Fehlerhafte Profile erscheinen in der App als rot gestrichelte Kachel mit Fehlermeldung.
 
 ## Starten
 
@@ -11,20 +43,20 @@ npm start          # http://localhost:8080
 python3 -m http.server 8080
 ```
 
-Service Worker brauchen `localhost` oder HTTPS. Zum Testen auf dem Handy im LAN daher z. B. über einen HTTPS-Tunnel ausliefern.
+Service Worker brauchen `localhost` oder HTTPS.
 
 ## Struktur
 
 ```
-index.html             App-Shell
-manifest.webmanifest   PWA-Manifest (Name, Icons, Farben)
+index.html             App-Shell mit drei Ansichten (Übersicht, Vorbereitung, Lauf)
+manifest.webmanifest   PWA-Manifest
 sw.js                  Service Worker (Cache-first, offline)
 css/styles.css         Rot-auf-Schwarz-Theme
-js/app.js              UI-Verdrahtung, SW-Registrierung
-js/timer.js            Driftfreier Countdown (EventTarget)
-js/steps.js            Standard-Prozessschritte
-js/alerts.js           Ton, Vibration, Screen Wake Lock
-icons/                 App-Icons (SVG + PNG 192/512)
+js/app.js              UI und Ansichten
+js/profile.js          Profil-Validierung (Regeln wie CPPTouch), Ablauf, Ansatztabelle
+js/runner.js           Freihändiger Prozessablauf (Ausleeren, Auto-Weiter)
+js/alerts.js           Signaltöne, Vibration, Screen Wake Lock
+js/format.js           Zeit-/Temperaturformatierung
+profiles/              Prozessprofile + generierter index.json
+scripts/build.mjs      Build: Profile prüfen, Index + Cache-Version schreiben
 ```
-
-Nach Änderungen an gecachten Dateien `CACHE_VERSION` in `sw.js` erhöhen.

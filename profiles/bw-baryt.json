@@ -1,0 +1,13 @@
+{
+  "name": "SW-Papier Baryt",
+  "temp_c": 20.0,
+  "temp_tolerance_c": 0.5,
+  "steps": [
+    { "name": "Entwickler",      "canister": 1, "duration_s": 120 },
+    { "name": "Stoppbad",        "canister": 2, "duration_s": 30 },
+    { "name": "Fixierer",        "canister": 3, "duration_s": 120 },
+    { "name": "Wässern",         "canister": 0, "duration_s": 300 },
+    { "name": "Washaid",         "canister": 4, "duration_s": 600 },
+    { "name": "Schlusswässerung","canister": 0, "duration_s": 300 }
+  ]
+}

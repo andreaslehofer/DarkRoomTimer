@@ -1,0 +1,10 @@
+{
+  "profiles": [
+    "bw-baryt.json",
+    "bw-pe.json",
+    "bw.json",
+    "c41.json",
+    "e6.json",
+    "ra4.json"
+  ]
+}

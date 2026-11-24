@@ -1,0 +1,17 @@
+{
+  "name": "Jobo E-6",
+  "temp_c": 38.0,
+  "temp_tolerance_c": 0.3,
+  "steps": [
+    { "name": "Vorwässern",       "canister": 0, "duration_s": 60,  "purge_s": 0 },
+    { "name": "Erstentwickler",   "canister": 1, "duration_s": 360, "purge_s": 45 },
+    { "name": "Farbentwickler",   "canister": 5, "duration_s": 360, "purge_s": 45 },
+    { "name": "Bleichfix",        "canister": 2, "duration_s": 360, "purge_s": 45 },
+    { "name": "Schlusswässerung", "canister": 0, "duration_s": 240, "purge_s": 0 }
+  ],
+  "tanks": [
+    { "name": "2523 – 2 Rollen", "rpm": 75, "volume": 0 },
+    { "name": "2553 – 6 Rollen", "rpm": 75, "volume": 0 },
+    { "name": "3006 – 6 Blatt",  "rpm": 50, "volume": 0 }
+  ]
+}
