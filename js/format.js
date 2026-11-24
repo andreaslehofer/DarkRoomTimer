@@ -14,9 +14,10 @@ export function formatDuration(seconds) {
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`;
 }
 
+/** "20,0 °C" bzw. mit Toleranz "20,0 °C ± 0,5". */
 export function formatTemp(temp, tolerance) {
   const fmt = (v) => v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  return `${fmt(temp)} °C ± ${fmt(tolerance)}`;
+  return tolerance === undefined ? `${fmt(temp)} °C` : `${fmt(temp)} °C ± ${fmt(tolerance)}`;
 }
 
 /**

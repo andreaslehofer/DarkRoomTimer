@@ -1,5 +1,6 @@
 {
-  "name": "Papier Baryt (check !!)",
+  "name": "Baryt (check !!)",
+  "process_type": "paper-tray",
   "temp_c": 20.0,
   "temp_tolerance_c": 0.5,
   "steps": [

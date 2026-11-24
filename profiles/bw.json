@@ -1,5 +1,6 @@
 {
-  "name": "Film Adox XT-3",
+  "name": "Adox XT-3",
+  "process_type": "film-rotation",
   "temp_c": 20.0,
   "temp_tolerance_c": 0.5,
   "steps": [

@@ -1,8 +1,15 @@
 // Prozessprofile: Validierung, Ablauf-Erzeugung, Ansatztabelle.
 // Format 1:1 kompatibel mit CPPTouch (cpp2-ui/profiles/README.md) –
 // gleiche Regeln, gleiche Verwerfungsgründe. Zusätzliche App-Felder
-// ("option_label", "one_shot") ignoriert das Gerät.
+// ("process_type", "option_label", "one_shot") ignoriert das Gerät.
 // Läuft im Browser und in Node (scripts/build.mjs).
+
+/** Prozesstypen in Anzeige-Reihenfolge (App-Feld "process_type"). */
+export const PROCESS_TYPES = {
+  'film-rotation': 'Film · Rotation',
+  'paper-rotation': 'Papier · Rotation',
+  'paper-tray': 'Papier · Schale',
+};
 
 export const LIMITS = {
   maxSteps: 16,
@@ -31,6 +38,14 @@ export function parseProfile(raw) {
 
   const name = str(raw.name, null);
   if (!name) fail("'name' fehlt");
+
+  let process_type = null;
+  if (raw.process_type !== undefined) {
+    if (!Object.hasOwn(PROCESS_TYPES, raw.process_type)) {
+      fail(`process_type "${raw.process_type}" unbekannt (erlaubt: ${Object.keys(PROCESS_TYPES).join(', ')})`);
+    }
+    process_type = raw.process_type;
+  }
 
   if (!isNum(raw.temp_c)) fail("'temp_c' fehlt");
   if (raw.temp_c < LIMITS.tempMin || raw.temp_c > LIMITS.tempMax) {
@@ -105,6 +120,7 @@ export function parseProfile(raw) {
 
   return {
     name,
+    process_type,
     temp_c: raw.temp_c,
     temp_tolerance_c,
     steps,

@@ -1,5 +1,6 @@
 {
   "name": "Papier RA-4 (check !!)",
+  "process_type": "paper-rotation",
   "temp_c": 35.0,
   "temp_tolerance_c": 0.3,
   "steps": [

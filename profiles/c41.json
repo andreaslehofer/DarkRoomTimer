@@ -1,5 +1,6 @@
 {
-  "name": "Film Bellini C-41 (check !!)",
+  "name": "Bellini C-41 (check !!)",
+  "process_type": "film-rotation",
   "temp_c": 38.0,
   "temp_tolerance_c": 0.3,
   "steps": [

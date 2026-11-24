@@ -21,6 +21,7 @@ Zusätzliche, nur von der App genutzte Felder (vom Gerät ignoriert):
 
 | Feld | Bedeutung |
 |---|---|
+| `process_type` | Gruppe auf der Startseite: `film-rotation`, `paper-rotation`, `paper-tray`. Fehlt es, landet das Profil unter „Sonstige“ |
 | `option_label` | Beschriftung der Auswahl für `option[]`, z. B. „Film“ oder „Durchsatz“ (Default „Variante“) |
 | `steps[].one_shot` | `true` = Chemie wird nach Gebrauch verworfen (One-shot), fehlt/`false` = Re-use. Wird in Vorbereitung und Lauf angezeigt |
 

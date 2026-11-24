@@ -1,4 +1,4 @@
-import { parseProfile, buildSequence, totalDuration, mixingTable } from './profile.js';
+import { parseProfile, buildSequence, totalDuration, mixingTable, PROCESS_TYPES } from './profile.js';
 import { ProcessRunner } from './runner.js';
 import { formatTime, formatDuration, formatTemp, parseDuration } from './format.js';
 import { unlockAudio, signal, initWakeLock } from './alerts.js';
@@ -85,24 +85,36 @@ async function loadProfiles() {
   );
 }
 
+function profileTile(entry) {
+  if (entry.error) {
+    return h('div', { class: 'tile tile--error' },
+      h('span', { class: 'tile__name' }, entry.file),
+      h('span', { class: 'tile__meta' }, entry.error));
+  }
+  const p = entry.profile;
+  const total = totalDuration(buildSequence(p, prefs.get(entry.file).option ?? 0));
+  return h('button', { type: 'button', class: 'tile', onclick: () => openSetup(entry) },
+    h('span', { class: 'tile__name' }, p.name),
+    h('span', { class: 'tile__meta' }, `Temp: ${formatTemp(p.temp_c)}`),
+    h('span', { class: 'tile__meta' }, `Dauer: ${formatDuration(total)}`));
+}
+
 function renderList(entries) {
-  // Gültige Profile zuerst, kaputte Dateien bleiben sichtbar (wie auf dem Gerät).
-  const sorted = [...entries].sort((a, b) => !!a.error - !!b.error);
+  // Gruppen nach Prozesstyp; Profile ohne Typ unter "Sonstige".
+  // Kaputte Dateien bleiben sichtbar (wie auf dem Gerät), als eigene Gruppe am Ende.
+  const groups = [
+    ...Object.entries(PROCESS_TYPES).map(([type, label]) =>
+      [label, entries.filter((e) => e.profile?.process_type === type)]),
+    ['Sonstige', entries.filter((e) => e.profile && !e.profile.process_type)],
+    ['Fehlerhafte Dateien', entries.filter((e) => e.error)],
+  ];
   fill($('profile-list'),
-    ...sorted.map((entry) => {
-      if (entry.error) {
-        return h('div', { class: 'tile tile--error' },
-          h('span', { class: 'tile__name' }, entry.file),
-          h('span', { class: 'tile__meta' }, entry.error));
-      }
-      const p = entry.profile;
-      const total = totalDuration(buildSequence(p, prefs.get(entry.file).option ?? 0));
-      return h('button', { type: 'button', class: 'tile', onclick: () => openSetup(entry) },
-        h('span', { class: 'tile__name' }, p.name),
-        h('span', { class: 'tile__meta' }, `${formatTemp(p.temp_c, p.temp_tolerance_c)}`),
-        h('span', { class: 'tile__meta' }, `${p.steps.length} Schritte · ${formatDuration(total)}`));
-    })
-  );
+    groups
+      .filter(([, items]) => items.length > 0)
+      .map(([label, items]) =>
+        h('section', { class: 'group' },
+          h('h2', { class: 'group__title' }, label),
+          h('div', { class: 'tiles' }, items.map(profileTile)))));
 }
 
 // ---------------------------------------------------------------- Vorbereitung

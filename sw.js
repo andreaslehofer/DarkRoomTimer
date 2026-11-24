@@ -1,7 +1,7 @@
 // Service Worker: Cache-first für App-Shell und Profile, damit alles offline läuft.
 // CACHE_VERSION wird von `npm run build` aus dem Inhalt aller Dateien berechnet –
 // nicht von Hand ändern.
-const CACHE_VERSION = 'f75b13351b';
+const CACHE_VERSION = 'bacaa1b99e';
 const CACHE_NAME = `darkroomtimer-${CACHE_VERSION}`;
 
 const APP_SHELL = [

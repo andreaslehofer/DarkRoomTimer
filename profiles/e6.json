@@ -1,5 +1,6 @@
 {
   "name": "Film E-6 (check !!)",
+  "process_type": "film-rotation",
   "temp_c": 38.0,
   "temp_tolerance_c": 0.3,
   "steps": [
