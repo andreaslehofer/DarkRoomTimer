@@ -1,7 +1,7 @@
 // Prozessprofile: Validierung, Ablauf-Erzeugung, Ansatztabelle.
 // Format 1:1 kompatibel mit CPPTouch (cpp2-ui/profiles/README.md) –
 // gleiche Regeln, gleiche Verwerfungsgründe. Zusätzliche App-Felder
-// (z. B. "option_label") ignoriert das Gerät.
+// ("option_label", "one_shot") ignoriert das Gerät.
 // Läuft im Browser und in Node (scripts/build.mjs).
 
 export const LIMITS = {
@@ -60,7 +60,11 @@ export function parseProfile(raw) {
       }
       stock_perc = s.stock_perc;
     }
-    return { name: str(s.name, 'Schritt'), canister, duration_s, purge_s, stock_perc };
+    if (s.one_shot !== undefined && typeof s.one_shot !== 'boolean') {
+      fail(`Schritt ${n}: one_shot muss true oder false sein`);
+    }
+    const one_shot = s.one_shot === true; // App-Feld; Default: Re-use
+    return { name: str(s.name, 'Schritt'), canister, duration_s, purge_s, stock_perc, one_shot };
   });
 
   let tanks = [];
@@ -138,6 +142,7 @@ export function buildSequence(profile, optionIndex = 0) {
       kind: 'step',
       name: step.name,
       canister: step.canister,
+      one_shot: step.one_shot,
       duration_s: overridden ? opt.duration_s : step.duration_s,
     });
     if (step.purge_s > 0) {
@@ -158,6 +163,7 @@ export function mixingTable(profile, tankIndex = 0) {
     .map((s) => ({
       name: s.name,
       canister: s.canister,
+      one_shot: s.one_shot,
       stock_ml: Math.round((tank.volume * s.stock_perc) / 100),
       total_ml: tank.volume,
     }));

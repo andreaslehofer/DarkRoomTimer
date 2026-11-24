@@ -1,10 +1,10 @@
 {
-  "name": "Adox XT-3",
+  "name": "Film Adox XT-3 (check !!)",
   "temp_c": 20.0,
   "temp_tolerance_c": 0.5,
   "steps": [
     { "name": "Vorspülen",   "canister": 0, "duration_s": 120, "purge_s": 0 },
-    { "name": "Entwickler",  "canister": 1, "duration_s": 0,   "purge_s": 0,  "stock_perc": 50.0 },
+    { "name": "Entwickler",  "canister": 1, "duration_s": 0,   "purge_s": 0,  "stock_perc": 50.0, "one_shot": true },
     { "name": "Stoppbad",    "canister": 2, "duration_s": 30,  "purge_s": 30, "stock_perc": 5.0 },
     { "name": "Fixierer",    "canister": 3, "duration_s": 300, "purge_s": 30, "stock_perc": 100.0 },
     { "name": "Washaid",     "canister": 4, "duration_s": 120, "purge_s": 30, "stock_perc": 20.0 },

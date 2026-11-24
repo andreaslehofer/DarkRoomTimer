@@ -1,6 +1,6 @@
 import { parseProfile, buildSequence, totalDuration, mixingTable } from './profile.js';
 import { ProcessRunner } from './runner.js';
-import { formatTime, formatDuration, formatTemp } from './format.js';
+import { formatTime, formatDuration, formatTemp, parseDuration } from './format.js';
 import { unlockAudio, signal, initWakeLock } from './alerts.js';
 
 const $ = (id) => document.getElementById(id);
@@ -18,6 +18,11 @@ function h(tag, attrs = {}, ...children) {
   return el;
 }
 
+/** Inhalt ersetzen; false/null/undefined (aus `bedingung && element`) werden ignoriert. */
+function fill(el, ...children) {
+  el.replaceChildren(...children.flat().filter((c) => c != null && c !== false));
+}
+
 // Gemerkte Auswahl pro Profil (nur Komfort – darf fehlschlagen).
 const prefs = {
   get(file) {
@@ -27,6 +32,23 @@ const prefs = {
     try { localStorage.setItem(`drt:${file}`, JSON.stringify(value)); } catch { /* egal */ }
   },
 };
+
+/** Behälter-Symbol: Kreis mit Nummer, "W" für Wasser (Kanister 0 = Spülen/Vorwässern). */
+function badge(canister, extraClass = '') {
+  const water = canister === 0;
+  return h('span', {
+    class: `badge ${water ? 'badge--water' : ''} ${extraClass}`.trim(),
+    title: water ? 'Wasser' : `Behälter ${canister}`,
+    'aria-label': water ? 'Wasser' : `Behälter ${canister}`,
+  }, water ? 'W' : String(canister));
+}
+
+/** Re-use / One-shot – nur für Chemie, nicht für Wasser. */
+function usageTag(seg, extraClass = '') {
+  if (!seg || seg.kind !== 'step' || seg.canister === 0) return null;
+  return h('span', { class: `usage ${seg.one_shot ? 'usage--oneshot' : ''} ${extraClass}`.trim() },
+    seg.one_shot ? 'One-shot' : 'Re-use');
+}
 
 // ---------------------------------------------------------------- Ansichten
 
@@ -65,7 +87,7 @@ async function loadProfiles() {
 function renderList(entries) {
   // Gültige Profile zuerst, kaputte Dateien bleiben sichtbar (wie auf dem Gerät).
   const sorted = [...entries].sort((a, b) => !!a.error - !!b.error);
-  $('profile-list').replaceChildren(
+  fill($('profile-list'),
     ...sorted.map((entry) => {
       if (entry.error) {
         return h('div', { class: 'tile tile--error' },
@@ -84,7 +106,13 @@ function renderList(entries) {
 
 // ---------------------------------------------------------------- Vorbereitung
 
-let selected = null; // { file, profile, option, tank }
+let selected = null; // { file, profile, option, tank, overrides }
+
+/** Ablauf inkl. der nur für diesen Lauf geänderten Zeiten (Push/Pull) – Profil bleibt unverändert. */
+function currentSequence() {
+  return buildSequence(selected.profile, selected.option).map((s, i) =>
+    selected.overrides.has(i) ? { ...s, duration_s: selected.overrides.get(i), base_s: s.duration_s } : s);
+}
 
 function openSetup(entry) {
   const saved = prefs.get(entry.file);
@@ -93,6 +121,7 @@ function openSetup(entry) {
     ...entry,
     option: Math.min(saved.option ?? 0, Math.max(0, p.option.length - 1)),
     tank: Math.min(saved.tank ?? 0, Math.max(0, p.tanks.length - 1)),
+    overrides: new Map(), // Segment-Index → Sekunden
   };
   $('setup-name').textContent = p.name;
   $('setup-temp').textContent = formatTemp(p.temp_c, p.temp_tolerance_c);
@@ -109,45 +138,79 @@ function selectField(label, items, value, onchange) {
 function renderSetup() {
   const { profile: p } = selected;
   const update = (key) => (value) => {
+    if (key === 'option') {
+      // Neue Variante → deren Zeit gilt wieder; eigene Änderung an diesem Schritt verwerfen.
+      buildSequence(p, selected.option).forEach((s, i) => {
+        if (s.kind === 'step' && s.canister === p.option_canister) selected.overrides.delete(i);
+      });
+    }
     selected[key] = value;
     prefs.set(selected.file, { option: selected.option, tank: selected.tank });
     renderSetup();
   };
 
-  $('setup-selects').replaceChildren(
+  fill($('setup-selects'),
     p.option.length > 0 && selectField(p.option_label, p.option.map((o) => `${o.name} – ${formatDuration(o.duration_s)}`), selected.option, update('option')),
     p.tanks.length > 0 && selectField('Tank', p.tanks.map((t) => t.name), selected.tank, update('tank')),
   );
 
-  const segments = buildSequence(p, selected.option);
-  $('setup-steps').replaceChildren(
+  const segments = currentSequence();
+  const edited = selected.overrides.size > 0;
+  fill($('setup-steps'),
     h('thead', {}, h('tr', {}, h('th', {}, 'Schritt'), h('th', {}, 'Beh.'), h('th', { class: 'num' }, 'Zeit'))),
-    h('tbody', {}, segments.map((s) =>
+    h('tbody', {}, segments.map((s, i) =>
       h('tr', { class: s.kind === 'purge' ? 'purge' : '' },
-        h('td', {}, s.kind === 'purge' ? `↳ Spülen` : s.name),
-        h('td', {}, String(s.canister)),
-        h('td', { class: 'num' }, formatDuration(s.duration_s))))),
-    h('tfoot', {}, h('tr', {}, h('td', { colspan: 2 }, 'Gesamt'), h('td', { class: 'num' }, formatDuration(totalDuration(segments))))),
+        h('td', {}, s.kind === 'purge' ? `↳ Spülen` : s.name, ' ', usageTag(s)),
+        h('td', {}, badge(s.canister)),
+        h('td', { class: 'num' }, timeInput(s, i))))),
+    h('tfoot', {},
+      h('tr', {}, h('td', { colspan: 2 }, 'Gesamt'), h('td', { class: 'num' }, formatDuration(totalDuration(segments)))),
+      edited && h('tr', {}, h('td', { colspan: 3, class: 'note' },
+        'Geänderte Zeiten gelten nur für diesen Lauf. ',
+        h('button', { type: 'button', class: 'link', onclick: () => { selected.overrides.clear(); renderSetup(); } }, 'Alle zurücksetzen')))),
   );
 
   const rows = mixingTable(p, selected.tank);
-  $('setup-mixing').replaceChildren(
+  fill($('setup-mixing'),
     rows.length > 0 && h('div', { class: 'mixing' },
       h('h3', {}, 'Ansatz'),
       h('table', {},
         h('thead', {}, h('tr', {}, h('th', {}, 'Schritt'), h('th', {}, 'Beh.'), h('th', { class: 'num' }, 'Stamm'), h('th', { class: 'num' }, 'Gesamt'))),
         h('tbody', {}, rows.map((r) =>
           h('tr', {},
-            h('td', {}, r.name),
-            h('td', {}, String(r.canister)),
+            h('td', {}, r.name, ' ', usageTag({ kind: 'step', ...r })),
+            h('td', {}, badge(r.canister)),
             h('td', { class: 'num' }, `${r.stock_ml} ml`),
             h('td', { class: 'num' }, `${r.total_ml} ml`)))))),
   );
 }
 
+/** Zeit-Feld in der Schrittliste: Ziffern-Tastatur, "830" = 8:30. */
+function timeInput(seg, index) {
+  const input = h('input', {
+    type: 'text',
+    inputmode: 'numeric',
+    class: `time-input ${seg.base_s !== undefined ? 'time-input--edited' : ''}`.trim(),
+    value: formatDuration(seg.duration_s),
+    'aria-label': `Zeit ${seg.kind === 'purge' ? 'Spülen' : seg.name}`,
+    title: seg.base_s !== undefined ? `Profil: ${formatDuration(seg.base_s)}` : 'Zeit ändern (nur für diesen Lauf)',
+    onfocus: (e) => e.target.select(),
+    onkeydown: (e) => { if (e.key === 'Enter') e.target.blur(); },
+    onchange: (e) => {
+      const value = parseDuration(e.target.value);
+      const base = seg.base_s ?? seg.duration_s;
+      if (value === null) { /* ungültig → alten Wert wieder anzeigen */ }
+      else if (value === base) selected.overrides.delete(index);
+      else selected.overrides.set(index, value);
+      renderSetup();
+    },
+  });
+  return input;
+}
+
 $('btn-run').addEventListener('click', () => {
   unlockAudio(); // muss in der Nutzergeste passieren (iOS)
-  startRun(buildSequence(selected.profile, selected.option));
+  startRun(currentSequence());
 });
 
 // ---------------------------------------------------------------- Lauf
@@ -161,7 +224,10 @@ function segmentLabel(seg) {
 function startRun(segments) {
   runner = new ProcessRunner(segments);
   $('run-name').textContent = selected.profile.name;
-  $('run-progress').replaceChildren(...segments.map((s) => h('li', { class: s.kind })));
+  delete $('run-canister').dataset.key;
+  delete $('run-next').dataset.key;
+  delete $('run-usage').dataset.key;
+  fill($('run-progress'), ...segments.map((s) => h('li', { class: s.kind })));
 
   runner.addEventListener('segment', (e) => {
     if (e.detail.reason !== 'skip') signal('next');
@@ -193,16 +259,29 @@ function renderRun() {
   $('run-status').textContent = status;
 
   $('run-step').textContent = done ? selected.profile.name : segmentLabel(seg);
-  $('run-canister').textContent = done || !seg ? '' : `Behälter ${seg.canister}`;
+  // Symbol nur bei Wechsel neu bauen (render läuft 10×/s)
+  const canKey = done || !seg ? '' : String(seg.canister);
+  if ($('run-canister').dataset.key !== canKey) {
+    $('run-canister').dataset.key = canKey;
+    fill($('run-canister'), canKey === '' ? '' : badge(seg.canister, 'badge--lg'));
+  }
+  const usageKey = done || !seg ? '' : String(runner.index);
+  if ($('run-usage').dataset.key !== usageKey) {
+    $('run-usage').dataset.key = usageKey;
+    fill($('run-usage'), done ? '' : usageTag(seg, 'usage--lg') ?? '');
+  }
   $('run-display').textContent = formatTime(runner.remaining);
   $('run-total').textContent = done ? '' : `noch ${formatTime(runner.totalRemaining)}`;
 
   const next = runner.next;
-  $('run-next').textContent = done
-    ? ''
-    : next
-      ? `Danach: ${segmentLabel(next)} · Beh. ${next.canister} · ${formatDuration(next.duration_s)}`
-      : 'Letzter Schritt';
+  const nextKey = done ? 'done' : next ? `${runner.index + 1}` : 'last';
+  if ($('run-next').dataset.key !== nextKey) {
+    $('run-next').dataset.key = nextKey;
+    fill($('run-next'),
+      ...(done ? [] : next
+        ? ['Danach:', badge(next.canister), `${segmentLabel(next)} · ${formatDuration(next.duration_s)}`, usageTag(next) ?? '']
+        : ['Letzter Schritt']));
+  }
 
   [...$('run-progress').children].forEach((li, i) => {
     li.classList.toggle('done', done || i < runner.index);
@@ -261,7 +340,7 @@ initWakeLock((active) => {
 loadProfiles()
   .then(renderList)
   .catch((err) => {
-    $('profile-list').replaceChildren(
+    fill($('profile-list'),
       h('div', { class: 'tile tile--error' },
         h('span', { class: 'tile__name' }, 'Profile nicht geladen'),
         h('span', { class: 'tile__meta' }, err.message)));

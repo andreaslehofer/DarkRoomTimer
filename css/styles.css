@@ -1,15 +1,31 @@
-/* Dunkelkammer-Theme: ausschließlich tiefes Rot auf Schwarz,
-   damit Fotopapier nicht belichtet wird und die Augen dunkeladaptiert bleiben. */
+/* Neutrales Thema, folgt hell/dunkel des Systems.
+   Für die Dunkelkammer: iOS-Bedienungshilfen → Farbfilter → Farbton Rot. */
 :root {
-  --bg: #000;
-  --fg: #b00000;
-  --fg-dim: #5a0000;
-  --fg-active: #ff1a1a;
-  --bg-raised: #120000;
-  --bg-press: #260000;
-  --bg-alert: #3a0000;
+  --bg: #f5f5f3;
+  --fg: #141414;
+  --fg-dim: #6b6b6b;
+  --line: #dcdcd8;
+  --bg-raised: #ffffff;
+  --bg-press: #e6e6e2;
+  --alert-bg: #ffe3c4;
+  --alert-fg: #c2410c;
+  --water: #1971c2;
   --radius: 12px;
-  color-scheme: dark;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d0d0d;
+    --fg: #f2f2f2;
+    --fg-dim: #8c8c8c;
+    --line: #2a2a2a;
+    --bg-raised: #1a1a1a;
+    --bg-press: #262626;
+    --alert-bg: #3d2309;
+    --alert-fg: #ffa94d;
+    --water: #4dabf7;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -62,17 +78,17 @@ h2 { margin: 0; font-size: 1.6rem; font-weight: 500; }
   flex-direction: column;
   gap: 6px;
   padding: 14px;
-  border: 1px solid var(--fg-dim);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: transparent;
+  background: var(--bg-raised);
   color: var(--fg);
   font: inherit;
   text-align: left;
 }
 .tile__name { font-size: 1.1rem; }
 .tile__meta { font-size: 0.85rem; color: var(--fg-dim); font-variant-numeric: tabular-nums; }
-.tile--error { border-color: var(--fg); border-style: dashed; cursor: default; }
-.tile--error .tile__meta { color: var(--fg); overflow-wrap: anywhere; }
+.tile--error { border-color: var(--alert-fg); border-style: dashed; cursor: default; }
+.tile--error .tile__meta { color: var(--alert-fg); overflow-wrap: anywhere; }
 
 /* --- Vorbereitung --- */
 .back {
@@ -89,7 +105,7 @@ select {
   width: 100%;
   min-height: 48px;
   padding: 0 12px;
-  border: 1px solid var(--fg-dim);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--bg-raised);
   color: var(--fg);
@@ -98,7 +114,7 @@ select {
 }
 
 table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-th, td { padding: 6px 4px; text-align: left; border-bottom: 1px solid #1f0000; }
+th, td { padding: 6px 4px; text-align: left; border-bottom: 1px solid var(--line); }
 th { font-weight: 500; font-size: 0.8rem; color: var(--fg-dim); }
 td.num, th.num { text-align: right; }
 tr.purge td { color: var(--fg-dim); font-size: 0.9rem; }
@@ -120,20 +136,78 @@ tfoot td { border-bottom: 0; font-weight: 600; }
 }
 .run__status { min-height: 1.4em; font-size: 1.1rem; letter-spacing: 0.1em; text-transform: uppercase; }
 .run__step { font-size: 2rem; }
+.run__step-line { display: flex; align-items: center; gap: 14px; }
+
+/* Behälter-Symbol: Kreis mit Nummer, "W" für Wasser (Spülen, Vorwässern) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 1.7em;
+  height: 1.7em;
+  border: 0.12em solid currentColor;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.badge--water { color: var(--water); }
+.badge--lg { font-size: 1.7rem; }
+/* Re-use / One-shot */
+.usage {
+  display: inline-block;
+  padding: 1px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.usage--oneshot { border-color: var(--alert-fg); color: var(--alert-fg); }
+.usage--lg { font-size: 0.95rem; padding: 3px 12px; }
+.run__usage { min-height: 1.8em; }
+
+/* Zeit-Feld: sieht aus wie Text, antippen zum Ändern */
+.time-input {
+  width: 4.2em;
+  padding: 4px 2px;
+  border: 0;
+  border-bottom: 1px dashed var(--fg-dim);
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1rem; /* ≥16px: iOS zoomt sonst beim Fokus */
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  user-select: text;
+}
+.time-input:focus { outline: none; border-bottom: 2px solid var(--fg); }
+.time-input--edited { color: var(--alert-fg); font-weight: 700; border-bottom-color: var(--alert-fg); }
+td.note { font-size: 0.8rem; font-weight: 400; color: var(--fg-dim); }
+.link { padding: 0; border: 0; background: none; color: var(--fg); font: inherit; text-decoration: underline; }
+
+.run__next .badge { font-size: 0.8rem; margin: 0 2px; vertical-align: middle; }
 .run__display {
   font-size: clamp(4.5rem, 26vw, 9rem);
   font-weight: 200;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
-.run__next { color: var(--fg-dim); min-height: 1.4em; }
+.run__next { color: var(--fg-dim); min-height: 1.4em; display: flex; align-items: center; gap: 6px; }
 
 /* Ausleer-Fenster: unübersehbar, auch aus dem Augenwinkel */
-.run--draining .run__main { background: var(--bg-alert); }
+.run--draining .run__main { background: var(--alert-bg); }
 .run--draining .run__status,
-.run--draining .run__display { color: var(--fg-active); }
+.run--draining .run__display { color: var(--alert-fg); }
 .run--paused .run__display { animation: blink 1s steps(2) infinite; }
-.run--done .run__display { color: var(--fg-active); }
+.run--done .run__display { color: var(--fg); }
 
 @keyframes blink { 50% { opacity: 0.25; } }
 
@@ -144,7 +218,7 @@ tfoot td { border-bottom: 0; font-weight: 600; }
   padding: 0;
   list-style: none;
 }
-.progress li { flex: 1; height: 6px; border-radius: 3px; background: #1f0000; }
+.progress li { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
 .progress li.purge { flex: 0.5; }
 .progress li.done { background: var(--fg-dim); }
 .progress li.current { background: var(--fg); }
@@ -153,16 +227,17 @@ tfoot td { border-bottom: 0; font-weight: 600; }
 
 .btn {
   min-height: 64px;
-  border: 1px solid var(--fg-dim);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: transparent;
+  background: var(--bg-raised);
   color: var(--fg);
   font: inherit;
   font-size: 1.1rem;
 }
-.btn--primary { border-color: var(--fg); }
+.btn--primary { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+.btn--primary:active { opacity: 0.8; }
 .btn--wide { width: 100%; margin-top: auto; }
-.btn--confirm { border-color: var(--fg-active); color: var(--fg-active); }
+.btn--confirm { border-color: var(--alert-fg); color: var(--alert-fg); }
 .btn:active, .tile:active, .back:active { background: var(--bg-press); }
 
 @media (prefers-reduced-motion: reduce) {
