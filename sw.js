@@ -1,6 +1,6 @@
 // Service Worker: Cache-first für die App-Shell, damit der Timer offline läuft.
 // Bei jeder Änderung an gecachten Dateien CACHE_VERSION erhöhen.
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `darkroomtimer-${CACHE_VERSION}`;
 
 const APP_SHELL = [
