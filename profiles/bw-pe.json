@@ -6,7 +6,7 @@
   "steps": [
     { "name": "Entwickler", "canister": 1, "duration_s": 70 },
     { "name": "Stoppbad",   "canister": 2, "duration_s": 15 },
-    { "name": "Fixierer",   "canister": 3, "duration_s": 120 },
-    { "name": "Wässern",  "canister": 4, "duration_s": 240 }
+    { "name": "Fixierer",   "canister": 3, "duration_s": 120, "purge_s": 30 },
+    { "name": "2* Wässern",  "canister": 4, "duration_s": 60,  "purge_s": 120}
   ]
 }
