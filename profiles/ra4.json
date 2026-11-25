@@ -1,15 +1,13 @@
 {
-  "name": "Papier RA-4 (check !!)",
+  "name": "Adox RA-4",
   "process_type": "paper-rotation",
   "temp_c": 35.0,
   "temp_tolerance_c": 0.3,
   "steps": [
-    { "name": "Vorwässern", "canister": 0, "duration_s": 60 },
+    { "name": "Vorwässern", "canister": 0, "duration_s": 180 },
     { "name": "Entwickler", "canister": 1, "duration_s": 45 },
-    { "name": "Stoppbad",   "canister": 5, "duration_s": 30 },
-    { "name": "Bleichfix",  "canister": 2, "duration_s": 60 },
-    { "name": "Wässern 1",  "canister": 0, "duration_s": 60 },
-    { "name": "Wässern 2",  "canister": 0, "duration_s": 60 },
-    { "name": "Wässern 3",  "canister": 0, "duration_s": 60 }
+    { "name": "Stoppbad",   "canister": 2, "duration_s": 30 },
+    { "name": "Bleichfix",  "canister": 3, "duration_s": 45,  "purge_s": 30  },
+    { "name": "2x Wässern",  "canister": 0, "duration_s": 60,  "purge_s": 120}
   ]
 }
