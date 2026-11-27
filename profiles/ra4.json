@@ -10,7 +10,7 @@
   "steps": [
     { "name": "Vorwässern", "canister": 0, "duration_s": 180 },
     { "name": "Entwickler", "canister": 1, "duration_s": 45,  "stock_perc": 20.0 },
-    { "name": "Stoppbad",   "canister": 2, "duration_s": 30,  "stock_perc": 5.0 },
+    { "name": "Stoppbad",   "canister": 2, "duration_s": 30,  "stock_perc": 10.0 },
     { "name": "Bleichfix",  "canister": 3, "duration_s": 45,  "purge_s": 30,  "stock_perc": 20.0  },
     { "name": "2x Wässern",  "canister": 0, "duration_s": 60,  "purge_s": 120}
   ]
