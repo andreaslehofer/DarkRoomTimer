@@ -262,7 +262,7 @@ $('steps-back').addEventListener('click', () => {
 });
 
 $('btn-run').addEventListener('click', () => {
-  unlockAudio(); // muss in der Nutzergeste passieren (iOS)
+  unlockAudio(); // bei jedem Start neu – muss in der Nutzergeste passieren (iOS)
   startRun(currentSequence());
 });
 
@@ -296,7 +296,7 @@ function startRun(segments) {
 }
 
 function renderRun() {
-  if (!runner) return;
+  if (!runner || runner.state === 'idle') return; // nach Abbruch: nichts mehr zu zeichnen
   const seg = runner.current;
   const done = runner.state === 'done';
   const view = views.run;

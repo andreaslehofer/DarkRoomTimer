@@ -1,16 +1,39 @@
 // Akustische Signale + Bildschirm wach halten.
 
-let audioCtx;
+let audioCtx = null;
 
-// Muss einmal aus einer Nutzergeste heraus aufgerufen werden (iOS/Safari).
-export function unlockAudio() {
-  // iOS: Web Audio läuft standardmäßig in der "ambient"-Session und verstummt
-  // beim Lautlos-Schalter. "playback" spielt trotzdem (Safari/iOS 17+).
-  // Nebenwirkung: Musik aus anderen Apps wird dabei angehalten.
-  if (navigator.audioSession) navigator.audioSession.type = 'playback';
-  audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state !== 'running') audioCtx.resume();
+// iOS legt Web Audio nach Unterbrechungen oder längerer Pause (z. B. zwischen zwei Läufen)
+// schlafen ("suspended"/"interrupted") – dann fallen Signale stillschweigend aus.
+// Gegenmittel: frischer Kontext bei jedem Start und Wiederbeleben bei jeder Gelegenheit.
+
+function tryResume() {
+  if (audioCtx && audioCtx.state !== 'running' && audioCtx.state !== 'closed') {
+    audioCtx.resume().catch(() => {});
+  }
 }
+
+/** Bei jedem Start aus der Nutzergeste aufrufen (iOS lässt Audio nur dort sicher anlaufen). */
+export function unlockAudio() {
+  // "playback" spielt auch bei Lautlos-Schalter (Safari/iOS 17+); hält Musik anderer Apps an.
+  if (navigator.audioSession) navigator.audioSession.type = 'playback';
+
+  audioCtx?.close().catch(() => {});
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  audioCtx.addEventListener('statechange', tryResume);
+  audioCtx.resume().catch(() => {});
+
+  // Kurzer stiller Puffer innerhalb der Geste – entsperrt die Wiedergabe auf iOS zuverlässig.
+  const silent = audioCtx.createBufferSource();
+  silent.buffer = audioCtx.createBuffer(1, 1, audioCtx.sampleRate);
+  silent.connect(audioCtx.destination);
+  silent.start();
+}
+
+// Jede Berührung ist eine Nutzergeste → bester Moment, einen schlafenden Kontext zu wecken.
+document.addEventListener('pointerdown', tryResume, { capture: true });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') tryResume();
+});
 
 // Ein Ton mit kurzer Ein-/Ausblende (vermeidet Knacken), Lautstärke über die gesamte Länge konstant.
 function tone(start, freq, length, volume = 0.5) {
@@ -37,13 +60,15 @@ const SIGNALS = {
   done:  { tones: [[1320, 0.3], [990, 0.3], [660, 0.6]], gap: 0.1, vibrate: [300, 100, 300, 100, 600] },
 };
 
-export function signal(type) {
+export async function signal(type) {
   const def = SIGNALS[type];
   if (!def) return;
   navigator.vibrate?.(def.vibrate);
-  if (!audioCtx) return;
-  // iOS setzt den Kontext nach Unterbrechungen (Anruf, Siri) auf "interrupted".
-  if (audioCtx.state !== 'running') audioCtx.resume();
+  if (!audioCtx || audioCtx.state === 'closed') return;
+  if (audioCtx.state !== 'running') {
+    // Erst aufwecken, dann spielen – sonst landen die Töne im schlafenden Kontext.
+    await Promise.race([audioCtx.resume().catch(() => {}), new Promise((r) => setTimeout(r, 500))]);
+  }
   let t = audioCtx.currentTime + 0.02;
   for (const [freq, length] of def.tones) {
     tone(t, freq, length);

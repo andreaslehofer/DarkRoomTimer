@@ -4,7 +4,7 @@
   "temp_c": 35.0,
   "temp_tolerance_c": 0.3,
   "tanks": [
-      { "name": "Standard",  "rpm": 50, "volume": 1000 }
+      { "name": "Standard",  "rpm": 50, "volume": 500 }
    ],
   "steps": [
     { "name": "Vorwässern", "canister": 0, "duration_s": 180 },
