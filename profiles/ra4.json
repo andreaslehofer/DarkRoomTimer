@@ -4,7 +4,8 @@
   "temp_c": 35.0,
   "temp_tolerance_c": 0.3,
   "tanks": [
-      { "name": "Standard",  "rpm": 50, "volume": 500 }
+      { "name": "9x 30x40cm, 25x 24x18cm",  "rpm": 50, "volume": 500 },
+      { "name": "18x 30x40cm, 50x 24x18cm",  "rpm": 50, "volume": 1000 }
    ],
   "steps": [
     { "name": "Vorwässern", "canister": 0, "duration_s": 180 },

@@ -1,7 +1,7 @@
 // Service Worker: Cache-first für App-Shell und Profile, damit alles offline läuft.
 // CACHE_VERSION wird von `npm run build` aus dem Inhalt aller Dateien berechnet –
 // nicht von Hand ändern.
-const CACHE_VERSION = '4120b577fe';
+const CACHE_VERSION = '2dae69e0ba';
 const CACHE_NAME = `darkroomtimer-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -50,9 +50,17 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Nie aufs Netz warten, wenn eine Antwort im Cache liegt – in der Dunkelkammer ist das WLAN schlecht.
+// Seitenaufrufe (App-Start) bekommen immer die gespeicherte Startseite, egal mit welcher Adresse
+// iOS startet ("…/DarkRoomTimer", "…/?source=…", "…/index.html"). Sonst: Treffer ohne Rücksicht auf "?…".
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
-  );
+  const { request } = event;
+  if (request.method !== 'GET') return;
+  event.respondWith((async () => {
+    if (request.mode === 'navigate') {
+      const shell = await caches.match('./index.html');
+      if (shell) return shell;
+    }
+    return (await caches.match(request, { ignoreSearch: true })) || fetch(request);
+  })());
 });
